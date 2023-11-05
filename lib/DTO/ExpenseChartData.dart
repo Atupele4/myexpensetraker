@@ -1,6 +1,7 @@
 class ExpenseChartData {
-  ExpenseChartData(this.year, this.sales);
-
+  ExpenseChartData(this.year, this.month, this.category, this.totalItems);
   final String year;
-  final double sales;
+  final String month;
+  final String category;
+  final double totalItems;
 }

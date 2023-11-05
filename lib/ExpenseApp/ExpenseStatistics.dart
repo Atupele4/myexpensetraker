@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import '../Utils.dart';
+import 'package:myexpensetraker/DatabaseHelper.dart';
 
 class ExpenseStatistics extends StatelessWidget {
   const ExpenseStatistics({super.key});
@@ -12,7 +12,7 @@ class ExpenseStatistics extends StatelessWidget {
           title: const Text('Expense Statistics'),
         ),
         body: FutureBuilder(
-          future: Utils.getExpensesTotals(),
+          future: DatabaseHelper.instance.getExpensesTotals(),
           builder: (BuildContext context, AsyncSnapshot<Map<String, double>> snapshot) {
             if (snapshot.hasData) {
               // The data has been loaded from SQLite.

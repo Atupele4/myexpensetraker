@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:myexpensetraker/DTO/ExpenseChartData.dart';
 import 'package:myexpensetraker/ExpenseApp/ExpenseStatistics.dart';
+import 'package:myexpensetraker/login/login.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import '../Utils.dart';
 import 'AddExpens.dart';
 import 'ExpenseCategories.dart';
 import 'ExpenseList.dart';
@@ -16,22 +17,17 @@ class ExpenseApp extends StatefulWidget {
 
 class _ExpenseAppState extends State<ExpenseApp> {
   List<ExpenseChartData> data = [
-    ExpenseChartData('Jan', 35),
-    ExpenseChartData('Feb', 28),
-    ExpenseChartData('Mar', 34),
-    ExpenseChartData('Apr', 32),
-    ExpenseChartData('May', 40),
-    ExpenseChartData('Jun', 40),
-    ExpenseChartData('Jul', 40),
-    ExpenseChartData('Aug', 25),
-    ExpenseChartData('Sep', 70),
-    ExpenseChartData('Oct', 45),
-    ExpenseChartData('Nov', 40),
-    ExpenseChartData('Dec', 60),
+    ExpenseChartData('2023','Jan','Food',7),
+    ExpenseChartData('2023','Feb','Transport',16),
   ];
   final int _selectedIndex = 0;
 
-  final String? loggedInUser = Utils.prefs.getString('loggedInUser');
+  Future<void> navigateToNewScreen() async {
+    await Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const Login()),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,14 +47,6 @@ class _ExpenseAppState extends State<ExpenseApp> {
               ),
               child: Column(
                 children: [
-                  Icon(
-                    Icons.home,
-                    color: Colors.white,
-                  ),
-                  Text(
-                    "Menu",
-                    style: TextStyle(color: Colors.white),
-                  ),
                 ],
               ),
             ),
@@ -66,8 +54,7 @@ class _ExpenseAppState extends State<ExpenseApp> {
               title: const Row(
                 children: [
                   Icon(Icons.add),
-                  Text(" "),
-                  Text("Add Expense"),
+                  Text(" Add Expense"),
                 ],
               ),
               selected: _selectedIndex == 1,
@@ -82,8 +69,7 @@ class _ExpenseAppState extends State<ExpenseApp> {
               title: const Row(
                 children: [
                   Icon(Icons.category),
-                  Text(" "),
-                  Text("Expense Category"),
+                  Text(" Expense Category"),
                 ],
               ),
               onTap: () {
@@ -98,8 +84,7 @@ class _ExpenseAppState extends State<ExpenseApp> {
               title: const Row(
                 children: [
                   Icon(Icons.list),
-                  Text(" "),
-                  Text("Expense Listing"),
+                  Text(" Expense Listing"),
                 ],
               ),
               onTap: () {
@@ -114,8 +99,7 @@ class _ExpenseAppState extends State<ExpenseApp> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(Icons.stacked_bar_chart),
-                  Text(" "),
-                  Text("Statistics"),
+                  Text(" Statistics"),
                 ],
               ),
               onTap: () {
@@ -124,6 +108,23 @@ class _ExpenseAppState extends State<ExpenseApp> {
                   MaterialPageRoute(
                       builder: (context) => const ExpenseStatistics()),
                 );
+              },
+            ),
+            ListTile(
+              title: const Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Icon(Icons.stacked_bar_chart),
+                  Text(" LogOut"),
+                ],
+              ),
+              onTap: () async {
+
+                final SharedPreferences prefs =
+                await SharedPreferences.getInstance();
+                await prefs.setString('loggedInUser', '');
+
+                await navigateToNewScreen();
               },
             ),
           ],
@@ -149,8 +150,8 @@ class _ExpenseAppState extends State<ExpenseApp> {
                       series: <ChartSeries<ExpenseChartData, String>>[
                         LineSeries<ExpenseChartData, String>(
                             dataSource: data,
-                            xValueMapper: (ExpenseChartData sales, _) => sales.year,
-                            yValueMapper: (ExpenseChartData sales, _) => sales.sales,
+                            xValueMapper: (ExpenseChartData sales, _) => sales.month,
+                            yValueMapper: (ExpenseChartData sales, _) => sales.totalItems,
                             name: 'Sales',
                             // Enable data label
                             dataLabelSettings: const DataLabelSettings(isVisible: true))

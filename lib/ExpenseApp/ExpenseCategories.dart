@@ -31,7 +31,9 @@ class _ExpenseCategoriesState extends State<ExpenseCategories> {
     Utils.getExpenseCategories().then((dropdownItems) {
       setState(() {
         this.dropdownItems = dropdownItems;
-        selectedItem = dropdownItems[0];
+        if(dropdownItems.isNotEmpty){
+          selectedItem = dropdownItems[0];
+        }
       });
     });
   }
@@ -40,30 +42,36 @@ class _ExpenseCategoriesState extends State<ExpenseCategories> {
   Widget build(BuildContext context) {
     return Scaffold(
         appBar: AppBar(
-          title: Text('Expense Categories'),
+          title: const Text('Expense Categories'),
         ),
         body: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              DropdownButton<String>(
-                value: selectedItem,
-                items: dropdownItems.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    selectedItem = value!;
-                  });
-                },
-              ),
-              TextField(
-                controller: textEditingController,
-                decoration: InputDecoration(hintText: 'Add new item'),
-              ),
-              ElevatedButton(
-                onPressed: addItem,
-                child: const Text('Add'),
-              ),
-            ],
+          child: Container(
+            margin: const EdgeInsets.fromLTRB(10, 20, 10, 20),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                DropdownButton<String>(
+                  value: selectedItem,
+                  items: dropdownItems.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      selectedItem = value!;
+                    });
+                  },
+                ),
+                TextField(
+                  controller: textEditingController,
+                  decoration: const InputDecoration(labelText: 'New Category Name'),
+                ),
+                Container(
+                  margin: const EdgeInsets.all(20),
+                  child: ElevatedButton(
+                    onPressed: addItem,
+                    child: const Text('Add'),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );

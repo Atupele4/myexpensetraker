@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:myexpensetraker/DTO/Expense.dart';
+import 'package:myexpensetraker/DatabaseHelper.dart';
 import 'package:myexpensetraker/Utils.dart';
 
 class AddExpense extends StatefulWidget {
@@ -15,6 +16,7 @@ class _ExpenseFormState extends State<AddExpense> {
   final _formKey = GlobalKey<FormState>();
   String expenseName = '';
   String expenseCategory = '';
+  DateTime expenseDate = DateTime.now();
   double expenseAmount = 0.0;
   List<String> dropdownItems = [];
   String selectedItem = '';
@@ -100,9 +102,10 @@ class _ExpenseFormState extends State<AddExpense> {
                       name: expenseName,
                       category: expenseCategory,
                       amount: expenseAmount,
+                      date: expenseDate,
                     );
                     // Save the expense to the database or other storage.
-                    Utils.insertExpense(expense);
+                    DatabaseHelper.instance.insertExpense(expense);
 
                     // Show a dialog message box indicating that the item has been added.
                     showDialog(

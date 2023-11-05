@@ -41,6 +41,7 @@ dependencies:
   sqflite: ^2.3.0
   path: ^1.8.3
   syncfusion_flutter_charts: ^23.1.43
+  firebase_admin: ^0.2.0
 
 dev_dependencies:
   flutter_test:
