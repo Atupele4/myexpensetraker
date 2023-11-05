@@ -40,6 +40,7 @@ dependencies:
   shared_preferences: ^2.2.2
   sqflite: ^2.3.0
   path: ^1.8.3
+  syncfusion_flutter_charts: ^23.1.43
 
 dev_dependencies:
   flutter_test:

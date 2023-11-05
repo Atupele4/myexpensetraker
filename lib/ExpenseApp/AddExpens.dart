@@ -37,8 +37,9 @@ class _ExpenseFormState extends State<AddExpense> {
         body: Form(
           key: _formKey,
           child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Text('Add Expense'),
+              const Text('ADD EXPENSE'),
               TextFormField(
                 decoration: const InputDecoration(
                   labelText: 'Expense Name',
@@ -80,7 +81,7 @@ class _ExpenseFormState extends State<AddExpense> {
                   });
                 },
               ),
-              const Text('Pick Expense Category'),
+              Container(margin: const EdgeInsets.fromLTRB(5,10, 5, 10), child: const Text('Pick Expense Category')),
               DropdownButton<String>(
                 value: selectedItem,
                 items: dropdownItems.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
