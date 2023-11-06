@@ -102,7 +102,6 @@ class _ExpenseFormState extends State<AddExpense> {
                       name: expenseName,
                       category: expenseCategory,
                       amount: expenseAmount,
-                      date: expenseDate,
                     );
                     // Save the expense to the database or other storage.
                     DatabaseHelper.instance.insertExpense(expense);

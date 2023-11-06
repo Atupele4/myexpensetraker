@@ -31,15 +31,17 @@ class _LoginState extends State<Login> {
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: <Widget>[
-          const Text('Email'),
           TextField(
             decoration: const InputDecoration(
-              helperText: 'Hello'
+              labelText: 'Email'
             ),
             onChanged: (email_) => {email = email_},
           ),
-          const Text('Password'),
           TextField(
+            obscureText: true,
+            decoration: const InputDecoration(
+              labelText: 'Password'
+            ),
             onChanged: (password_) => {password = password_},
           ),
           ElevatedButton(

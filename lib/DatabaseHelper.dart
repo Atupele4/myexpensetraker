@@ -48,7 +48,6 @@ class DatabaseHelper {
         name: maps[i]['name'] as String,
         category: maps[i]['category'] as String,
         amount: maps[i]['amount'] as double,
-        date: maps[i]['date'] as DateTime,
       );
     });
   }
@@ -100,7 +99,6 @@ class DatabaseHelper {
         name: maps[i]['name'] as String,
         category: maps[i]['category'] as String,
         amount: maps[i]['amount'] as double,
-        date: maps[i]['amount'] as DateTime,
       );
     });
 
