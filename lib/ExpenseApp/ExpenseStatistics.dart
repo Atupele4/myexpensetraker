@@ -1,8 +1,8 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:myexpensetraker/DatabaseHelper.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
-import '../DTO/ExpenseChartData.dart';
+import '../DTO/Expense.dart';
+import '../DTO/PieData.dart';
 
 class ExpenseStatistics extends StatefulWidget {
   const ExpenseStatistics({super.key});
@@ -12,14 +12,44 @@ class ExpenseStatistics extends StatefulWidget {
 }
 
 class _ExpenseStatisticsState extends State<ExpenseStatistics> {
+  List<Expense>? expenses = [];
+  List<PieData> pieChartData = [];
 
-  List<ExpenseChartData> data = [
-    ExpenseChartData('2023','Jan','Food',7),
-    ExpenseChartData('2023','Feb','Transport',16),
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _getExpenses();
+  }
+
+  void _getExpenses() async {
+    expenses = await DatabaseHelper.instance.expenses();
+    _calculatePieChartData();
+  }
+
+  List<PieData> _calculatePieChartData() {
+    Map<String, double> categoryTotals = {};
+
+    for (Expense expense in expenses!) {
+      categoryTotals[expense.category] ??= 0;
+      final totalx = categoryTotals[expense.category] ?? 0;
+      final newTotal = totalx + expense.amount;
+      categoryTotals[expense.category] = newTotal;
+    }
+
+    double totalExpenses = categoryTotals.values.reduce((a, b) => a + b);
+
+    for (MapEntry<String, double> entry in categoryTotals.entries) {
+      setState(() {
+        pieChartData.add(PieData(entry.key, entry.value / totalExpenses * 100, entry.key));
+      });
+    }
+
+    return pieChartData;
+  }
 
   @override
   Widget build(BuildContext context) {
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Expense Statistics'),
@@ -28,37 +58,21 @@ class _ExpenseStatisticsState extends State<ExpenseStatistics> {
         future: DatabaseHelper.instance.getExpensesTotals(),
         builder: (BuildContext context, AsyncSnapshot<Map<String, double>> snapshot) {
           if (snapshot.hasData) {
-            return Container(
-              margin: const EdgeInsets.all(5),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                    children: [
-                      Center(
-                        child: SfCartesianChart(
-                            primaryXAxis: CategoryAxis(),
-                            // Chart title
-                            title: ChartTitle(text: 'Monthly Expense'),
-                            // Enable legend
-                            legend: const Legend(isVisible: true),
-                            // Enable tooltip
-                            tooltipBehavior: TooltipBehavior(enable: true),
-                            series: <ChartSeries<ExpenseChartData, String>>[
-                              LineSeries<ExpenseChartData, String>(
-                                  dataSource: data,
-                                  xValueMapper: (ExpenseChartData sales, _) => sales.month,
-                                  yValueMapper: (ExpenseChartData sales, _) => sales.totalItems,
-                                  name: 'Sales',
-                                  // Enable data label
-                                  dataLabelSettings: const DataLabelSettings(isVisible: true))
-                            ]),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+            return Center(
+                child:SfCircularChart(
+                    title: ChartTitle(text: 'Expenses Category allocation'),
+                    legend: const Legend(isVisible: true),
+                    series: <PieSeries<PieData, String>>[
+                      PieSeries<PieData, String>(
+                          explode: true,
+                          explodeIndex: 0,
+                          dataSource: pieChartData,
+                          xValueMapper: (PieData data, _) => data.xData,
+                          yValueMapper: (PieData data, _) => data.yData,
+                          dataLabelMapper: (PieData data, _) => data.text,
+                          dataLabelSettings: const DataLabelSettings(isVisible: true)),
+                    ]
+                )
             );
           } else if (snapshot.hasError) {
           // An error occurred while loading the data from SQLite.
