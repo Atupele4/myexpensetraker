@@ -1,4 +1,3 @@
-
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:myexpensetraker/DatabaseHelper.dart';
@@ -21,7 +20,7 @@ void main() async {
     join(await getDatabasesPath(), DatabaseHelper.DatabaseName),
     onCreate: (db, version) {
       return db.execute(
-        'CREATE TABLE expenses(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, description TEXT, expensedate TEXT, category TEXT, amount REAL)',
+        'CREATE TABLE expenses(id INTEGER PRIMARY KEY AUTOINCREMENT, expenseid TEXT, name TEXT, description TEXT, expensedate TEXT, category TEXT, amount REAL)',
       );
     },
     version: 1,
@@ -53,7 +52,6 @@ void initExpenseCategories() async {
       "Savings",
       "Other",
     ];
-
     // Save the list to SharedPreferences
     prefs.setStringList('expense_categories', expenseCategories);
   }
@@ -62,7 +60,6 @@ void initExpenseCategories() async {
 class MyApp extends StatelessWidget {
   const MyApp({super.key, required this.expenseTrackerValue});
   final String? expenseTrackerValue;
-
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {

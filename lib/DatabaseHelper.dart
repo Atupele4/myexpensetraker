@@ -34,6 +34,13 @@ class DatabaseHelper {
     );
   }
 
+  Future<void> clearDatabase() async {
+    // Get a reference to the database.
+    final db = await database;
+    // Clear the 'expenses' table.
+    await db.delete('expenses');
+  }
+
   Future<List<Expense>> expenses() async {
     // Get a reference to the database.
     final db = await database;
@@ -44,12 +51,12 @@ class DatabaseHelper {
     // Convert the List<Map<String, dynamic> into a List<Dog>.
     return List.generate(maps.length, (i) {
       return Expense(
-        id: maps[i]['id'] as int,
         name: maps[i]['name'] as String,
         category: maps[i]['category'] as String,
         amount: maps[i]['amount'] as double,
         description: maps[i]['description'] as String,
         expensedate: maps[i]['expensedate'] as String,
+        id: maps[i]['id'] as int,
       );
     });
   }
@@ -87,7 +94,6 @@ class DatabaseHelper {
     // Open the SQLite database.
     final db = await databaseFactory.openDatabase(DatabaseName);
 
-
     // Create a Map to store the totals for each category.
     final totals = <String, double>{};
 
@@ -97,12 +103,12 @@ class DatabaseHelper {
     // Convert the List<Map<String, dynamic> into a List<Dog>.
     List<Expense> results = List.generate(maps.length, (i) {
       return Expense(
-        id: maps[i]['id'] as int,
         name: maps[i]['name'] as String,
         category: maps[i]['category'] as String,
         amount: maps[i]['amount'] as double,
         description: maps[i]['description'] as String,
         expensedate: maps[i]['expensedate'] as String,
+        id: maps[i]['id'] as int,
       );
     });
 

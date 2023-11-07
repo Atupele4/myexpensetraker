@@ -145,10 +145,8 @@ class _ExpenseFormState extends State<AddExpense> {
                       ),
                     );
                   } else {
-
                     final formatter = DateFormat('MM/dd/yyyy');
                     final formattedDate = formatter.format(expenseDate);
-
                     var expense = Expense(
                       name: expenseName,
                       category: expenseCategory,

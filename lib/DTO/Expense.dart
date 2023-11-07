@@ -7,23 +7,24 @@ class Expense {
   final String expensedate;
 
   const Expense(
-      {this.id,
+      {
         required this.name,
         required this.category,
         required this.amount,
         required this.description,
         required this.expensedate,
+        this.id,
       });
 
   // Columns in the database.
   Map<String, dynamic> toMap() {
     return {
-      'id': id,
       'name': name,
       'category': category,
       'amount': amount,
       'description': description,
       'expensedate': expensedate,
+      'id': id,
     };
   }
 
