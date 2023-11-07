@@ -31,6 +31,32 @@ void main() async {
   String? expenseTrackerValue = prefs.getString('loggedInUser');
 
   runApp(MyApp(expenseTrackerValue: expenseTrackerValue));
+  initExpenseCategories();
+}
+
+void initExpenseCategories() async {
+  SharedPreferences prefs = await SharedPreferences.getInstance();
+
+  if (!prefs.containsKey('expense_categories')) {
+    List<String> expenseCategories = [
+      "Groceries",
+      "Utilities",
+      "Transportation",
+      "Dining Out",
+      "Entertainment",
+      "Shopping",
+      "Healthcare",
+      "Education",
+      "Travel",
+      "Insurance",
+      "Taxes",
+      "Savings",
+      "Other",
+    ];
+
+    // Save the list to SharedPreferences
+    prefs.setStringList('expense_categories', expenseCategories);
+  }
 }
 
 class MyApp extends StatelessWidget {
@@ -61,9 +87,6 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  void _incrementCounter() {
-    setState(() {});
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,11 +114,6 @@ class _MyHomePageState extends State<MyHomePage> {
                 child: const Text('Register')),
           ],
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
     );
   }

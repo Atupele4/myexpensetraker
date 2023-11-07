@@ -17,11 +17,29 @@ class _ExpenseCategoriesState extends State<ExpenseCategories> {
   void addItem() {
     String newItem = textEditingController.text.toUpperCase();
     if (newItem.isNotEmpty) {
-      setState(() {
-        dropdownItems.add(newItem);
-        selectedItem = newItem;
-        Utils.saveExpenseCategories(dropdownItems);
-      });
+      if (!dropdownItems.contains(newItem)) {
+        setState(() {
+          dropdownItems.add(newItem);
+          selectedItem = newItem;
+          Utils.saveExpenseCategories(dropdownItems);
+        });
+      } else {
+        showDialog(
+          context: context,
+          builder: (context) {
+            return AlertDialog(
+              title: const Text('Duplicate Category'),
+              content: const Text('The category you entered already exists.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+      }
     }
   }
 
@@ -52,7 +70,7 @@ class _ExpenseCategoriesState extends State<ExpenseCategories> {
               children: [
                 DropdownButton<String>(
                   value: selectedItem,
-                  items: dropdownItems.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+                  items: dropdownItems.map((item) => DropdownMenuItem(value: item, child: Text(item.toUpperCase()))).toList(),
                   onChanged: (value) {
                     setState(() {
                       selectedItem = value!;

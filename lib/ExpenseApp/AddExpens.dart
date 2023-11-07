@@ -86,7 +86,7 @@ class _ExpenseFormState extends State<AddExpense> {
               Container(margin: const EdgeInsets.fromLTRB(5,10, 5, 10), child: const Text('Pick Expense Category')),
               DropdownButton<String>(
                 value: selectedItem,
-                items: dropdownItems.map((item) => DropdownMenuItem(value: item, child: Text(item))).toList(),
+                items: dropdownItems.map((item) => DropdownMenuItem(value: item, child: Text(item.toUpperCase()))).toList(),
                 onChanged: (value) {
                   setState(() {
                     selectedItem = value!;

@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:myexpensetraker/DTO/ExpenseChartData.dart';
 import 'package:myexpensetraker/ExpenseApp/ExpenseStatistics.dart';
 import 'package:myexpensetraker/login/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:syncfusion_flutter_charts/charts.dart';
+import '../DTO/Expense.dart';
+import '../DatabaseHelper.dart';
 import 'AddExpens.dart';
 import 'ExpenseCategories.dart';
-import 'ExpenseList.dart';
+import 'package:intl/intl.dart';
 
 class ExpenseApp extends StatefulWidget {
   const ExpenseApp({super.key});
@@ -16,17 +16,27 @@ class ExpenseApp extends StatefulWidget {
 }
 
 class _ExpenseAppState extends State<ExpenseApp> {
-  List<ExpenseChartData> data = [
-    ExpenseChartData('2023','Jan','Food',7),
-    ExpenseChartData('2023','Feb','Transport',16),
-  ];
+  late Future<List<Expense>> _expensesFuture;
   final int _selectedIndex = 0;
+  late double countX = 0;
+  late String formattedDate;
 
   Future<void> navigateToNewScreen() async {
     await Navigator.pushReplacement(
       context,
       MaterialPageRoute(builder: (context) => const Login()),
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _expensesFuture = DatabaseHelper.instance.getAllExpenses();
+
+    // Create a formatter for the desired format
+    final formatter = DateFormat('MM/dd/yyyy');
+    formattedDate = formatter.format(DateTime.now());
+
   }
 
   @override
@@ -82,20 +92,6 @@ class _ExpenseAppState extends State<ExpenseApp> {
             ),
             ListTile(
               title: const Row(
-                children: [
-                  Icon(Icons.list),
-                  Text(" Expense Listing"),
-                ],
-              ),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ExpenseList()),
-                );
-              },
-            ),
-            ListTile(
-              title: const Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Icon(Icons.stacked_bar_chart),
@@ -130,36 +126,69 @@ class _ExpenseAppState extends State<ExpenseApp> {
           ],
         ),
       ),
-      body: Container(
-        margin: const EdgeInsets.all(5),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Center(
-                  child: SfCartesianChart(
-                      primaryXAxis: CategoryAxis(),
-                      // Chart title
-                      title: ChartTitle(text: 'Monthly Expense'),
-                      // Enable legend
-                      legend: const Legend(isVisible: true),
-                      // Enable tooltip
-                      tooltipBehavior: TooltipBehavior(enable: true),
-                      series: <ChartSeries<ExpenseChartData, String>>[
-                        LineSeries<ExpenseChartData, String>(
-                            dataSource: data,
-                            xValueMapper: (ExpenseChartData sales, _) => sales.month,
-                            yValueMapper: (ExpenseChartData sales, _) => sales.totalItems,
-                            name: 'Sales',
-                            // Enable data label
-                            dataLabelSettings: const DataLabelSettings(isVisible: true))
-                      ]),
-                ),
+      body: FutureBuilder<List<Expense>>(
+        future: _expensesFuture,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            for (final expense in snapshot.data!) {
+              countX += expense.amount;
+            }
+
+
+
+            // Format the date to the desired string
+
+
+
+
+
+            return DataTable(
+              dataTextStyle: const TextStyle(
+                fontSize: 10,
+                color: Colors.black
+              ),
+              columnSpacing: 10,
+              columns: const [
+                DataColumn(label: Text('Date')),
+                DataColumn(label: Text('Name')),
+                DataColumn(label: Text('Category')),
+                DataColumn(label: Text('Amount')),
+                DataColumn(label: Text('View'))
               ],
-            ),
-          ],
+              rows: snapshot.data!
+                  .map((expense) => DataRow(
+                cells: [
+                  DataCell(Text(formattedDate)),
+                  DataCell(Text(expense.name.toUpperCase())),
+                  DataCell(Text(expense.category.toString())),
+                  DataCell(Text(expense.amount.toString())),
+                  DataCell(ElevatedButton(
+                    onPressed: () {
+                      // Handle button click
+                    },
+                    child: const Icon(Icons.open_in_new),
+                  ))
+                ],
+              ))
+                  .toList(),
+            );
+          } else if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          } else {
+            return const Center(child: CircularProgressIndicator());
+          }
+        },
+      ),
+      bottomNavigationBar: BottomAppBar(
+        child: Container(
+          padding: EdgeInsets.all(16.0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              const Text('Total'),
+              Text('ZMK $countX'),
+            ],
+          ),
         ),
       ),
     );
