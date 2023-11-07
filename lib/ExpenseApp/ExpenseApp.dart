@@ -16,7 +16,7 @@ class ExpenseApp extends StatefulWidget {
 
 class _ExpenseAppState extends State<ExpenseApp> {
   late Future<List<Expense>> _expensesFuture;
-  late double countX = 0;
+  late double expenseTotal = 0;
   late String formattedDate;
 
   Future<void> navigateToNewScreen() async {
@@ -114,8 +114,9 @@ class _ExpenseAppState extends State<ExpenseApp> {
         future: _expensesFuture,
         builder: (context, snapshot) {
           if (snapshot.hasData) {
+            expenseTotal = 0;
             for (final expense in snapshot.data!) {
-              countX += expense.amount;
+              expenseTotal += expense.amount;
             }
             return RefreshIndicator(
               onRefresh: () async {
@@ -187,7 +188,7 @@ class _ExpenseAppState extends State<ExpenseApp> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Total'),
-              Text('ZMK $countX'),
+              Text('ZMK $expenseTotal'),
             ],
           ),
         ),
