@@ -1,16 +1,10 @@
-
-
-
 import 'dart:convert';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Utils {
 
   static late SharedPreferences prefs;
-
-
   static String userCredentialToJson(UserCredential userCredential) {
     return jsonEncode({
       'uid': userCredential.user?.uid,

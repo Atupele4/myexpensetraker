@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:myexpensetraker/ExpenseApp/ExpenseStatistics.dart';
 import 'package:myexpensetraker/login/login.dart';
@@ -33,6 +36,44 @@ class _ExpenseAppState extends State<ExpenseApp> {
     );
   }
 
+  Future<void> clearExpensesCollection() async {
+    CollectionReference expensesCollection = FirebaseFirestore.instance.collection('expenses');
+    QuerySnapshot querySnapshot = await expensesCollection.get();
+    for (DocumentSnapshot documentSnapshot in querySnapshot.docs) {
+      await documentSnapshot.reference.delete();
+    }
+  }
+
+  Future<bool> backUpExpensesOnline(List<Expense> expenses, FirebaseFirestore db) async {
+    for (var expense in expenses) {
+      db.collection("expenses").add(expense.toMap()).then((value) => debugPrint('Document ID ${value.id}'));
+    }
+    return true;
+  }
+
+  Future<List<Expense>> getExpensesFromOnline() async {
+
+    //clear local database
+    DatabaseHelper.instance.clearDatabase();
+
+    //get collection from online
+    CollectionReference expensesCollection = FirebaseFirestore.instance.collection('expenses');
+    QuerySnapshot querySnapshot = await expensesCollection.get();
+    List<Expense> expensesMemory = [];
+
+    for (DocumentSnapshot documentSnapshot in querySnapshot.docs) {
+      // Get the document data as a map
+      final documentData = documentSnapshot.data();
+      // Convert the document data to JSON
+      String jsonData =  jsonEncode(documentData);
+      // Decode the JSON string into an Expense object
+      final expenseDec = jsonDecode(jsonData);
+      Expense expenseFromOnline = Expense.fromMap(expenseDec);
+      await DatabaseHelper.instance.insertExpense(expenseFromOnline);
+      expensesMemory.add(expenseFromOnline);
+    }
+    return expensesMemory;
+  }
 
   @override
   void initState() {
@@ -141,7 +182,8 @@ class _ExpenseAppState extends State<ExpenseApp> {
                               context: context,
                               builder: (context) => AlertDialog(
                                 title: const Text('Delete / View Expense'),
-                                content: const Text('Select the action you want to perform'),
+                                content: const Text(
+                                    'Select the action you want to perform'),
                                 actions: [
                                   Row(
                                     mainAxisAlignment: MainAxisAlignment.center,
@@ -149,7 +191,8 @@ class _ExpenseAppState extends State<ExpenseApp> {
                                       TextButton(
                                         onPressed: () {
                                           // Delete the expense from the database or other storage
-                                          DatabaseHelper.instance.deleteExpense(expense.id!);
+                                          DatabaseHelper.instance
+                                              .deleteExpense(expense.id!);
                                           Navigator.pop(context);
                                         },
                                         child: const Text('DELETE'),
@@ -212,8 +255,61 @@ class _ExpenseAppState extends State<ExpenseApp> {
                 });
               },
               child: const Icon(Icons.refresh)),
+          ElevatedButton(
+              onPressed: () async {
+                FirebaseFirestore db = FirebaseFirestore.instance;
+
+                final expenses = await DatabaseHelper.instance.expenses();
+                await clearExpensesCollection();
+                await backUpExpensesOnline(expenses, db).then((value) {
+                  if(value == true){
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Expenses Uploaded '),
+                          content: const Text('Expenses were successfully uploaded online'),
+                          actions: [
+                            TextButton(
+                              child: const Text('OK'),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }
+                });
+              },
+              child: const Icon(Icons.upload)),
+          ElevatedButton(
+              onPressed: () async {
+                await getExpensesFromOnline().then((value){
+                  if (value.isNotEmpty) {
+                    // Display an AlertDialog
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Expenses Retrieved'),
+                          content: const Text('Expenses were successfully retrieved from the online source.'),
+                          actions: [
+                            TextButton(
+                              child: const Text('OK'),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  };
+                });
+              },
+              child: const Icon(Icons.download)),
         ],
       ),
     );
   }
+
+
 }
