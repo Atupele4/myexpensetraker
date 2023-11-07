@@ -21,7 +21,7 @@ void main() async {
     join(await getDatabasesPath(), DatabaseHelper.DatabaseName),
     onCreate: (db, version) {
       return db.execute(
-        'CREATE TABLE expenses(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, category TEXT, amount REAL)',
+        'CREATE TABLE expenses(id INTEGER PRIMARY KEY AUTOINCREMENT, name TEXT, description TEXT, expensedate TEXT, category TEXT, amount REAL)',
       );
     },
     version: 1,

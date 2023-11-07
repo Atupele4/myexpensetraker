@@ -6,7 +6,6 @@ import '../DTO/Expense.dart';
 import '../DatabaseHelper.dart';
 import 'AddExpens.dart';
 import 'ExpenseCategories.dart';
-import 'package:intl/intl.dart';
 
 class ExpenseApp extends StatefulWidget {
   const ExpenseApp({super.key});
@@ -17,7 +16,6 @@ class ExpenseApp extends StatefulWidget {
 
 class _ExpenseAppState extends State<ExpenseApp> {
   late Future<List<Expense>> _expensesFuture;
-  final int _selectedIndex = 0;
   late double countX = 0;
   late String formattedDate;
 
@@ -28,15 +26,18 @@ class _ExpenseAppState extends State<ExpenseApp> {
     );
   }
 
+  Future<void> CloseAlert() async {
+    await Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const ExpenseApp()),
+    );
+  }
+
+
   @override
   void initState() {
     super.initState();
     _expensesFuture = DatabaseHelper.instance.getAllExpenses();
-
-    // Create a formatter for the desired format
-    final formatter = DateFormat('MM/dd/yyyy');
-    formattedDate = formatter.format(DateTime.now());
-
   }
 
   @override
@@ -56,24 +57,8 @@ class _ExpenseAppState extends State<ExpenseApp> {
                 ),
               ),
               child: Column(
-                children: [
-                ],
+                children: [],
               ),
-            ),
-            ListTile(
-              title: const Row(
-                children: [
-                  Icon(Icons.add),
-                  Text(" Add Expense"),
-                ],
-              ),
-              selected: _selectedIndex == 1,
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const AddExpense()),
-                );
-              },
             ),
             ListTile(
               title: const Row(
@@ -115,9 +100,8 @@ class _ExpenseAppState extends State<ExpenseApp> {
                 ],
               ),
               onTap: () async {
-
                 final SharedPreferences prefs =
-                await SharedPreferences.getInstance();
+                    await SharedPreferences.getInstance();
                 await prefs.setString('loggedInUser', '');
 
                 await navigateToNewScreen();
@@ -133,44 +117,61 @@ class _ExpenseAppState extends State<ExpenseApp> {
             for (final expense in snapshot.data!) {
               countX += expense.amount;
             }
-
-
-
-            // Format the date to the desired string
-
-
-
-
-
-            return DataTable(
-              dataTextStyle: const TextStyle(
-                fontSize: 10,
-                color: Colors.black
-              ),
-              columnSpacing: 10,
-              columns: const [
-                DataColumn(label: Text('Date')),
-                DataColumn(label: Text('Name')),
-                DataColumn(label: Text('Category')),
-                DataColumn(label: Text('Amount')),
-                DataColumn(label: Text('View'))
-              ],
-              rows: snapshot.data!
-                  .map((expense) => DataRow(
-                cells: [
-                  DataCell(Text(formattedDate)),
-                  DataCell(Text(expense.name.toUpperCase())),
-                  DataCell(Text(expense.category.toString())),
-                  DataCell(Text(expense.amount.toString())),
-                  DataCell(ElevatedButton(
-                    onPressed: () {
-                      // Handle button click
-                    },
-                    child: const Icon(Icons.open_in_new),
-                  ))
+            return RefreshIndicator(
+              onRefresh: () async {
+                final expenses = await DatabaseHelper.instance.expenses();
+                setState(() {
+                  _expensesFuture = Future.value(expenses);
+                });
+              },
+              child: DataTable(
+                dataTextStyle:
+                    const TextStyle(fontSize: 10, color: Colors.black),
+                columns: const [
+                  DataColumn(label: Text('Date')),
+                  DataColumn(label: Text('Name')),
+                  DataColumn(label: Text('Category')),
+                  DataColumn(label: Text('Amount')),
                 ],
-              ))
-                  .toList(),
+                rows: snapshot.data!
+                    .map((expense) => DataRow(
+                          onLongPress: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Delete / View Expense'),
+                                content: const Text('Select the action you want to perform'),
+                                actions: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () {
+                                          // Delete the expense from the database or other storage
+                                          DatabaseHelper.instance.deleteExpense(expense.id!);
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('DELETE'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('VIEW'),
+                                      )
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            );
+                          },
+                          cells: [
+                            DataCell(Text(expense.expensedate)),
+                            DataCell(Text(expense.name.toUpperCase())),
+                            DataCell(Text(expense.category.toString())),
+                            DataCell(Text(expense.amount.toString())),
+                          ],
+                        ))
+                    .toList(),
+              ),
             );
           } else if (snapshot.hasError) {
             return Text('Error: ${snapshot.error}');
@@ -181,7 +182,7 @@ class _ExpenseAppState extends State<ExpenseApp> {
       ),
       bottomNavigationBar: BottomAppBar(
         child: Container(
-          padding: EdgeInsets.all(16.0),
+          padding: const EdgeInsets.all(16.0),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -190,6 +191,27 @@ class _ExpenseAppState extends State<ExpenseApp> {
             ],
           ),
         ),
+      ),
+      floatingActionButton: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const AddExpense()),
+                );
+              },
+              child: const Icon(Icons.plus_one)),
+          ElevatedButton(
+              onPressed: () async {
+                final expenses = await DatabaseHelper.instance.expenses();
+                setState(() {
+                  _expensesFuture = Future.value(expenses);
+                });
+              },
+              child: const Icon(Icons.refresh)),
+        ],
       ),
     );
   }

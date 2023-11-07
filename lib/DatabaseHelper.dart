@@ -48,6 +48,8 @@ class DatabaseHelper {
         name: maps[i]['name'] as String,
         category: maps[i]['category'] as String,
         amount: maps[i]['amount'] as double,
+        description: maps[i]['description'] as String,
+        expensedate: maps[i]['expensedate'] as String,
       );
     });
   }
@@ -67,12 +69,12 @@ class DatabaseHelper {
     );
   }
 
-  Future<void> deleteExpense(int id) async {
+  Future<int> deleteExpense(int id) async {
     // Get a reference to the database.
     final db = await database;
 
     // Remove the Dog from the database.
-    await db.delete(
+    return await db.delete(
       'expenses',
       // Use a `where` clause to delete a specific dog.
       where: 'id = ?',
@@ -99,6 +101,8 @@ class DatabaseHelper {
         name: maps[i]['name'] as String,
         category: maps[i]['category'] as String,
         amount: maps[i]['amount'] as double,
+        description: maps[i]['description'] as String,
+        expensedate: maps[i]['expensedate'] as String,
       );
     });
 

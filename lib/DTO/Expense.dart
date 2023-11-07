@@ -3,13 +3,17 @@ class Expense {
   final String name;
   final String category;
   final double amount;
+  final String description;
+  final String expensedate;
 
   const Expense(
       {this.id,
         required this.name,
         required this.category,
         required this.amount,
-        });
+        required this.description,
+        required this.expensedate,
+      });
 
   // Columns in the database.
   Map<String, dynamic> toMap() {
@@ -18,6 +22,8 @@ class Expense {
       'name': name,
       'category': category,
       'amount': amount,
+      'description': description,
+      'expensedate': expensedate,
     };
   }
 
@@ -25,7 +31,7 @@ class Expense {
   // each expense when using the print statement.
   @override
   String toString() {
-    return 'Expense{id: $id, name: $name, amount: $amount, category: $category}';
+    return 'Expense{id: $id, name: $name, amount: $amount, category: $category, description: $description, expensedate: $expensedate}';
   }
 
   static Expense fromMap(Map<String, dynamic> map) {
@@ -33,6 +39,8 @@ class Expense {
       name: map['name'],
       category: map['category'],
       amount: map['amount'],
+      description: map['description'],
+      expensedate: map['expensedate'],
       id: map['id'],
     );
   }
