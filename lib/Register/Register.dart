@@ -35,28 +35,38 @@ class _RegisterState extends State<Register> {
       appBar: AppBar(
         title: const Text('Register'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: <Widget>[
-          const Text('Email'),
-          TextField(
-            onChanged: (email_) => {email = email_},
-          ),
-          const Text('Password'),
-          TextField(
-            onChanged: (password_) => {password = password_},
-          ),
-          ElevatedButton(
-              onPressed: () async {
-                final newUser = await _auth.createUserWithEmailAndPassword(
-                    email: email, password: password);
-                String loggedInUser = Utils.userCredentialToJson(newUser);
-                Utils.prefs = await SharedPreferences.getInstance();
-                await Utils.prefs.setString('loggedInUser', loggedInUser);
-                await navigateToNewScreen();
-              },
-              child: const Text('Register'))
-        ],
+      body: Container(
+        margin: const EdgeInsets.all(20),
+        child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Email'
+              ),
+              onChanged: (email_) => {email = email_},
+            ),
+            TextField(
+              decoration: const InputDecoration(
+                labelText: 'Password'
+              ),
+              onChanged: (password_) => {password = password_},
+            ),
+            Container(
+              margin: const EdgeInsets.fromLTRB(20, 30, 20, 20),
+              child: ElevatedButton(
+                  onPressed: () async {
+                    final newUser = await _auth.createUserWithEmailAndPassword(
+                        email: email, password: password);
+                    String loggedInUser = Utils.userCredentialToJson(newUser);
+                    Utils.prefs = await SharedPreferences.getInstance();
+                    await Utils.prefs.setString('loggedInUser', loggedInUser);
+                    await navigateToNewScreen();
+                  },
+                  child: const Text('Register')),
+            )
+          ],
+        ),
       ),
     );
   }

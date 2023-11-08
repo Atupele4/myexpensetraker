@@ -1,11 +1,13 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:myexpensetraker/DatabaseHelper.dart';
+import 'package:myexpensetraker/ExpenseApp/AppSettings.dart';
 import 'package:myexpensetraker/Register/Register.dart';
 import 'package:path/path.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite/sqflite.dart';
 import 'ExpenseApp/ExpenseApp.dart';
+import 'ExpenseApp/ExpenseStatistics.dart';
 import 'firebase_options.dart';
 import 'login/login.dart';
 
@@ -30,6 +32,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      routes: {
+        '/ExpenseApp': (context) => const ExpenseApp(),
+        '/ExpenseStatistics': (context) => const ExpenseStatistics(),
+        '/AppSettings': (context) => const AppSettings(),
+      },
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
         useMaterial3: true,

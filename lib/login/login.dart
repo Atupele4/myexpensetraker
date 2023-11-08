@@ -28,34 +28,57 @@ class _LoginState extends State<Login> {
       appBar: AppBar(
         title: const Text('Login'),
       ),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: <Widget>[
-          TextField(
-            decoration: const InputDecoration(
-              labelText: 'Email'
+      body: Container(
+        margin: const EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            TextField(
+              decoration: const InputDecoration(labelText: 'Email'),
+              onChanged: (email_) => {email = email_},
             ),
-            onChanged: (email_) => {email = email_},
-          ),
-          TextField(
-            obscureText: true,
-            decoration: const InputDecoration(
-              labelText: 'Password'
+            TextField(
+              obscureText: true,
+              decoration: const InputDecoration(labelText: 'Password*'),
+              onChanged: (password_) => {password = password_},
             ),
-            onChanged: (password_) => {password = password_},
-          ),
-          ElevatedButton(
-              onPressed: () async {
-                final newUser = await _auth.signInWithEmailAndPassword(
-                    email: email, password: password);
-                String loggedInUser = Utils.userCredentialToJson(newUser);
-                final SharedPreferences prefs =
-                    await SharedPreferences.getInstance();
-                await prefs.setString('loggedInUser', loggedInUser);
-                await navigateToNewScreen();
-              },
-              child: const Text('Sign'))
-        ],
+            Container(
+              margin: const EdgeInsets.fromLTRB(20, 25, 20, 25),
+              child: ElevatedButton(
+                  onPressed: () async {
+                    await _auth
+                        .signInWithEmailAndPassword(
+                            email: email, password: password)
+                        .then((newUser) {
+                      String loggedInUser = Utils.userCredentialToJson(newUser);
+
+                      SharedPreferences.getInstance().then((prefs) {
+                        prefs.setString('loggedInUser', loggedInUser);
+                        navigateToNewScreen();
+                      });
+                    }).catchError((onError) {
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+
+                          return AlertDialog(
+                            title: const Text('Error'),
+                            content: Text(onError.toString()),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('OK'),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    });
+                  },
+                  child: const Text('Sign')),
+            )
+          ],
+        ),
       ),
     );
   }

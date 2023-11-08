@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 class Utils {
 
+  static late String selectedCurrency = "";
   static late SharedPreferences prefs;
   static String userCredentialToJson(UserCredential userCredential) {
     return jsonEncode({
