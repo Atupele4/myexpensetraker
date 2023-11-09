@@ -40,7 +40,7 @@ class _ExpenseAppState extends State<ExpenseApp> {
 
   Future<void> clearExpensesCollection() async {
     CollectionReference expensesCollection =
-        FirebaseFirestore.instance.collection('expenses');
+        FirebaseFirestore.instance.collection(Utils.accountEmail);
     QuerySnapshot querySnapshot = await expensesCollection.get();
     for (DocumentSnapshot documentSnapshot in querySnapshot.docs) {
       await documentSnapshot.reference.delete();
@@ -51,7 +51,7 @@ class _ExpenseAppState extends State<ExpenseApp> {
       List<Expense> expenses, FirebaseFirestore db) async {
     for (var expense in expenses) {
       db
-          .collection("expenses")
+          .collection(Utils.accountEmail)
           .add(expense.toMap())
           .then((value) => debugPrint('Document ID ${value.id}'));
     }

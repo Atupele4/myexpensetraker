@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:myexpensetraker/DatabaseHelper.dart';
@@ -18,24 +20,29 @@ void main() async {
   );
 
   Utils.prefs = await SharedPreferences.getInstance();
-  String? expenseTrackerValue = Utils.prefs.getString('loggedInUser');
+  String? loggedInUser = Utils.prefs.getString('loggedInUser');
 
-  runApp(MyApp(expenseTrackerValue: expenseTrackerValue));
+  runApp(MyApp(loggedInUser: loggedInUser));
 }
 
 
 class MyApp extends StatelessWidget {
-  const MyApp({super.key, required this.expenseTrackerValue});
-  final String? expenseTrackerValue;
+  const MyApp({super.key, required this.loggedInUser});
+  final String? loggedInUser;
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+
+    final loggedInUserDecode = jsonDecode(loggedInUser!);
+
+    Utils.accountEmail = loggedInUserDecode['email'];
+
     return MaterialApp(
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
         useMaterial3: true,
       ),
-      home: expenseTrackerValue == null || expenseTrackerValue!.isEmpty
+      home: loggedInUser == null || loggedInUser!.isEmpty
           ? const MyHomePage(title: 'Flutter Demo Home Page')
           : const ExpenseApp(),
     );

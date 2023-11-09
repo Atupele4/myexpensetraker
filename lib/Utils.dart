@@ -9,8 +9,10 @@ import 'DatabaseHelper.dart';
 
 class Utils {
 
-  static late String selectedCurrency = "";
+  static String selectedCurrency = "";
   static late SharedPreferences prefs;
+
+  static String accountEmail = "";
   static String userCredentialToJson(UserCredential userCredential) {
     return jsonEncode({
       'uid': userCredential.user?.uid,
@@ -76,7 +78,7 @@ class Utils {
 
     //get collection from online
     CollectionReference expensesCollection =
-    FirebaseFirestore.instance.collection('expenses');
+    FirebaseFirestore.instance.collection(Utils.accountEmail);
     QuerySnapshot querySnapshot = await expensesCollection.get();
     List<Expense> expensesMemory = [];
 
