@@ -1,15 +1,15 @@
-import 'dart:convert';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:myexpensetraker/login/login.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../DTO/Expense.dart';
-import '../DTO/ExpenseItem.dart';
 import '../DatabaseHelper.dart';
 import '../Utils.dart';
 import 'AddExpens.dart';
+import 'AppSettings.dart';
 import 'ExpenseCategories.dart';
 import 'package:share_plus/share_plus.dart';
+import 'ExpenseStatistics.dart';
 
 class ExpenseApp extends StatefulWidget {
   const ExpenseApp({super.key});
@@ -58,79 +58,15 @@ class _ExpenseAppState extends State<ExpenseApp> {
     return true;
   }
 
-  Future<List<Expense>> getExpensesFromOnline() async {
-    //clear local database
-    DatabaseHelper.instance.clearDatabase();
-
-    //get collection from online
-    CollectionReference expensesCollection =
-        FirebaseFirestore.instance.collection('expenses');
-    QuerySnapshot querySnapshot = await expensesCollection.get();
-    List<Expense> expensesMemory = [];
-
-    for (DocumentSnapshot documentSnapshot in querySnapshot.docs) {
-      // Get the document data as a map
-      final documentData = documentSnapshot.data();
-      // Convert the document data to JSON
-      String jsonData = jsonEncode(documentData);
-      // Decode the JSON string into an Expense object
-      final expenseDec = jsonDecode(jsonData);
-      Expense expenseFromOnline = Expense.fromMap(expenseDec);
-      await DatabaseHelper.instance.insertExpense(expenseFromOnline);
-      expensesMemory.add(expenseFromOnline);
-    }
-    return expensesMemory;
-  }
-
   @override
   void initState() {
     super.initState();
     setState(() {
-      SharedPreferences.getInstance().then((prefs) {
-        setState(() {
-          _expensesFuture = DatabaseHelper.instance.getAllExpenses();
-          Utils.selectedCurrency = prefs.getString('Currency')!;
-        });
-      });
+      _expensesFuture = DatabaseHelper.instance.getAllExpenses();
+      Utils.selectedCurrency = Utils.prefs.getString('Currency') ?? "ZMK";
     });
   }
 
-  String createEmailContent(String expenseSummary) {
-    return "Expense Summary for the week of 2023-11-07 to 2023-11-13:\n\n$expenseSummary";
-  }
-
-  String generateExpenseSummary(List<Expense> expenses) {
-    double totalExpense = 0;
-    Map<String, List<ExpenseItem>> categoryItems = {};
-
-    for (final expense in expenses) {
-      totalExpense += expense.amount;
-
-      if (!categoryItems.containsKey(expense.category)) {
-        categoryItems[expense.category] = [];
-      }
-
-      categoryItems[expense.category]!.add(ExpenseItem(expense.name, expense.amount));
-    }
-
-    String summary = "Total Expense: ${totalExpense.toStringAsFixed(2)}\n\n";
-    summary += "Itemized Expense Breakdown:\n";
-
-    for (final category in categoryItems.keys) {
-      summary += "\nCategory: $category\n";
-
-      double categoryTotal = 0;
-      for (final item in categoryItems[category]!) {
-        summary +=
-        "   - ${item.item}: ${item.price.toStringAsFixed(2)}\n";
-        categoryTotal += item.price;
-      }
-
-      summary += "   Category Total: ${categoryTotal.toStringAsFixed(2)}\n";
-    }
-
-    return summary;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -186,70 +122,7 @@ class _ExpenseAppState extends State<ExpenseApp> {
           ],
         ),
       ),
-      body: FutureBuilder<List<Expense>>(
-        future: _expensesFuture,
-        builder: (context, snapshot) {
-          if (snapshot.hasData) {
-            expenseTotal = 0;
-            for (final expense in snapshot.data!) {
-              expenseTotal += expense.amount;
-            }
-            return DataTable(
-              dataTextStyle: const TextStyle(fontSize: 10, color: Colors.black),
-              columns: const [
-                DataColumn(label: Text('Date')),
-                DataColumn(label: Text('Name')),
-                DataColumn(label: Text('Category')),
-                DataColumn(label: Text('Amount')),
-              ],
-              rows: snapshot.data!
-                  .map((expense) => DataRow(
-                        onLongPress: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => AlertDialog(
-                              title: const Text('Delete Expense'),
-                              content: const Text(
-                                  'Are you sure you want to delete this expense?'),
-                              actions: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    TextButton(
-                                      onPressed: () {
-                                        // Delete the expense from the database or other storage
-                                        DatabaseHelper.instance
-                                            .deleteExpense(expense.id!);
-                                        Navigator.pop(context);
-                                      },
-                                      child: const Text('YES'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => Navigator.pop(context),
-                                      child: const Text('NO'),
-                                    )
-                                  ],
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                        cells: [
-                          DataCell(Text(expense.expensedate)),
-                          DataCell(Text(expense.name.toUpperCase())),
-                          DataCell(Text(expense.category.toString())),
-                          DataCell(Text(expense.amount.toString())),
-                        ],
-                      ))
-                  .toList(),
-            );
-          } else if (snapshot.hasError) {
-            return Text('Error: ${snapshot.error}');
-          } else {
-            return const Center(child: CircularProgressIndicator());
-          }
-        },
-      ),
+      body: bodyFunction(),
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -271,21 +144,6 @@ class _ExpenseAppState extends State<ExpenseApp> {
           setState(() {
             _selectedIndex = index;
           });
-
-          switch (index) {
-            case 0:
-              // Navigate to the home page
-              Navigator.pushNamed(context, '/ExpenseApp');
-              break;
-            case 1:
-              // Navigate to the statistics page
-              Navigator.pushNamed(context, '/ExpenseStatistics');
-              break;
-            case 2:
-              // Navigate to the settings page
-              Navigator.pushNamed(context, '/AppSettings');
-              break;
-          }
         },
       ),
       floatingActionButton: Row(
@@ -337,7 +195,7 @@ class _ExpenseAppState extends State<ExpenseApp> {
               child: const Icon(Icons.upload)),
           ElevatedButton(
               onPressed: () async {
-                await getExpensesFromOnline().then((value) {
+                await Utils.getExpensesFromOnline().then((value) {
                   if (value.isNotEmpty) {
                     // Display an AlertDialog
                     showDialog(
@@ -363,7 +221,7 @@ class _ExpenseAppState extends State<ExpenseApp> {
           ElevatedButton(
               onPressed: () async {
                 final expenseData = await _expensesFuture;
-                final expenseSummary = generateExpenseSummary(expenseData!);
+                final expenseSummary = Utils.generateExpenseSummary(expenseData!);
 
                 Share.share(expenseSummary);
               },
@@ -373,23 +231,77 @@ class _ExpenseAppState extends State<ExpenseApp> {
     );
   }
 
-  void showNoMailAppsDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Open Mail App"),
-          content: const Text("No mail apps installed"),
-          actions: <Widget>[
-            TextButton(
-              child: const Text("OK"),
-              onPressed: () {
-                Navigator.pop(context);
-              },
-            )
-          ],
+  Widget bodyFunction() {
+    switch (_selectedIndex) {
+      case 1:
+        return const ExpenseStatistics();
+      case 2:
+        return const AppSettings();
+      default:
+        return FutureBuilder<List<Expense>>(
+          future: _expensesFuture,
+          builder: (context, snapshot) {
+            if (snapshot.hasData) {
+              expenseTotal = 0;
+              for (final expense in snapshot.data!) {
+                expenseTotal += expense.amount;
+              }
+              return DataTable(
+                dataTextStyle: const TextStyle(fontSize: 10, color: Colors.black),
+                columns: const [
+                  DataColumn(label: Text('Date')),
+                  DataColumn(label: Text('Name')),
+                  DataColumn(label: Text('Category')),
+                  DataColumn(label: Text('Amount')),
+                ],
+                rows: snapshot.data!
+                    .map((expense) => DataRow(
+                  onLongPress: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('Delete Expense'),
+                        content: const Text(
+                            'Are you sure you want to delete this expense?'),
+                        actions: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              TextButton(
+                                onPressed: () {
+                                  // Delete the expense from the database or other storage
+                                  DatabaseHelper.instance
+                                      .deleteExpense(expense.id!);
+                                  Navigator.pop(context);
+                                },
+                                child: const Text('YES'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(context),
+                                child: const Text('NO'),
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                  cells: [
+                    DataCell(Text(expense.expensedate)),
+                    DataCell(Text(expense.name.toUpperCase())),
+                    DataCell(Text(expense.category.toString())),
+                    DataCell(Text('${Utils.selectedCurrency} ${expense.amount.toString()}')),
+                  ],
+                ))
+                    .toList(),
+              );
+            } else if (snapshot.hasError) {
+              return Text('Error: ${snapshot.error}');
+            } else {
+              return const Center(child: Text('No Data'));
+            }
+          },
         );
-      },
-    );
+    }
   }
 }

@@ -36,12 +36,14 @@ class _ExpenseStatisticsState extends State<ExpenseStatistics> {
       categoryTotals[expense.category] = newTotal;
     }
 
-    double totalExpenses = categoryTotals.values.reduce((a, b) => a + b);
+    if(categoryTotals.isNotEmpty){
+      double totalExpenses = categoryTotals.values.reduce((a, b) => a + b);
 
-    for (MapEntry<String, double> entry in categoryTotals.entries) {
-      setState(() {
-        pieChartData.add(PieData(entry.key, entry.value / totalExpenses * 100, entry.key));
-      });
+      for (MapEntry<String, double> entry in categoryTotals.entries) {
+        setState(() {
+          pieChartData.add(PieData(entry.key, entry.value / totalExpenses * 100, entry.key));
+        });
+      }
     }
 
     return pieChartData;
@@ -51,9 +53,6 @@ class _ExpenseStatisticsState extends State<ExpenseStatistics> {
   Widget build(BuildContext context) {
 
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Expense Statistics'),
-      ),
       body: FutureBuilder(
         future: DatabaseHelper.instance.getExpensesTotals(),
         builder: (BuildContext context, AsyncSnapshot<Map<String, double>> snapshot) {

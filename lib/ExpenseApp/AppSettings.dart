@@ -12,12 +12,10 @@ class AppSettings extends StatefulWidget {
 }
 
 class _AppSettingsState extends State<AppSettings> {
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings'),
-      ),
       body: Container(
         margin: const EdgeInsets.all(30),
         child: Column(
@@ -90,7 +88,7 @@ class _AppSettingsState extends State<AppSettings> {
     super.initState();
     SharedPreferences.getInstance().then((prefs) {
       setState(() {
-        Utils.selectedCurrency = prefs.getString('Currency')!;
+        Utils.selectedCurrency = Utils.prefs.getString('Currency') ?? 'ZMK';
       });
     });
   }

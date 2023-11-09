@@ -36,28 +36,35 @@ class _ExpenseFormState extends State<AddExpense> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(),
+      appBar: AppBar(
+        title: const Text('Add Expense'),
+      ),
       body: Form(
         key: _formKey,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text('ADD EXPENSE'),
-            ElevatedButton(
-              onPressed: () async {
-                final selectedDate = await showDatePicker(
-                  context: context,
-                  initialDate: DateTime.now(),
-                  firstDate: DateTime(1950),
-                  lastDate: DateTime(2100),
-                );
-                if (selectedDate != null) {
-                  setState(() {
-                    expenseDate = selectedDate;
-                  });
-                }
-              },
-              child: const Text('Select Expense Date'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Text('11/05/2023 '),
+                ElevatedButton(
+                  onPressed: () async {
+                    final selectedDate = await showDatePicker(
+                      context: context,
+                      initialDate: DateTime.now(),
+                      firstDate: DateTime(1950),
+                      lastDate: DateTime(2100),
+                    );
+                    if (selectedDate != null) {
+                      setState(() {
+                        expenseDate = selectedDate;
+                      });
+                    }
+                  },
+                  child: const Icon(Icons.calendar_month_outlined),
+                )
+              ],
             ),
             TextFormField(
               decoration: const InputDecoration(
