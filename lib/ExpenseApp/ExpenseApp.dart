@@ -67,7 +67,6 @@ class _ExpenseAppState extends State<ExpenseApp> {
     });
   }
 
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -167,19 +166,35 @@ class _ExpenseAppState extends State<ExpenseApp> {
               child: const Icon(Icons.refresh)),
           ElevatedButton(
               onPressed: () async {
+                bool isDone = false;
+
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return const AlertDialog(
+                      title: Text('Backing up expenses online...'),
+                    );
+                  },
+                  barrierDismissible: false,
+                );
+
                 FirebaseFirestore db = FirebaseFirestore.instance;
 
                 final expenses = await DatabaseHelper.instance.expenses();
                 await clearExpensesCollection();
+
                 await backUpExpensesOnline(expenses, db).then((value) {
+                  Navigator.pop(context);
+                  isDone = true;
                   if (value == true) {
+                    // Display an AlertDialog
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: const Text('Expenses Uploaded '),
+                          title: const Text('Online Backup'),
                           content: const Text(
-                              'Expenses were successfully uploaded online'),
+                              'Expenses have successfully backed up online'),
                           actions: [
                             TextButton(
                               child: const Text('OK'),
@@ -190,21 +205,77 @@ class _ExpenseAppState extends State<ExpenseApp> {
                       },
                     );
                   }
+                }).catchError((onError){
+                  Navigator.pop(context);
+                  isDone = true;
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Online Backup'),
+                        content: Text(onError.toString()),
+                        actions: [
+                          TextButton(
+                            child: const Text('OK'),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 });
+
+                while (isDone) {
+                  await Future.delayed(const Duration(milliseconds: 100));
+                }
               },
               child: const Icon(Icons.upload)),
           ElevatedButton(
               onPressed: () async {
+                // Show a progress dialog
+                bool isDone = false;
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return const AlertDialog(
+                      title: Text('Loading...'),
+                    );
+                  },
+                  barrierDismissible: false,
+                );
+
+                // Get the expenses from online
                 await Utils.getExpensesFromOnline().then((value) {
+                  // Close the progress dialog
+                  Navigator.pop(context);
+                  isDone = true;
+
                   if (value.isNotEmpty) {
                     // Display an AlertDialog
                     showDialog(
                       context: context,
                       builder: (BuildContext context) {
                         return AlertDialog(
-                          title: const Text('Expenses Retrieved'),
+                          title: const Text('Backup Restore'),
                           content: const Text(
-                              'Expenses were successfully retrieved from the online source.'),
+                              'Online Expense backups have successfully been retrieved.'),
+                          actions: [
+                            TextButton(
+                              child: const Text('OK'),
+                              onPressed: () => Navigator.pop(context),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  }else{
+                    showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text('Backup Restore'),
+                          content: const Text(
+                              'No Online Backup was found'),
                           actions: [
                             TextButton(
                               child: const Text('OK'),
@@ -215,13 +286,40 @@ class _ExpenseAppState extends State<ExpenseApp> {
                       },
                     );
                   }
+                }).catchError((error) {
+                  // Close the progress dialog
+                  Navigator.pop(context);
+                  isDone = true;
+
+                  // Display an error message
+                  showDialog(
+                    context: context,
+                    builder: (BuildContext context) {
+                      return AlertDialog(
+                        title: const Text('Error'),
+                        content: Text('Something went wrong: $error'),
+                        actions: [
+                          TextButton(
+                            child: const Text('OK'),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ],
+                      );
+                    },
+                  );
                 });
+
+                // Wait until the progress dialog is closed
+                while (!isDone) {
+                  await Future.delayed(const Duration(milliseconds: 100));
+                }
               },
               child: const Icon(Icons.download)),
           ElevatedButton(
               onPressed: () async {
                 final expenseData = await _expensesFuture;
-                final expenseSummary = Utils.generateExpenseSummary(expenseData!);
+                final expenseSummary =
+                    Utils.generateExpenseSummary(expenseData!);
 
                 Share.share(expenseSummary);
               },
@@ -247,7 +345,8 @@ class _ExpenseAppState extends State<ExpenseApp> {
                 expenseTotal += expense.amount;
               }
               return DataTable(
-                dataTextStyle: const TextStyle(fontSize: 10, color: Colors.black),
+                dataTextStyle:
+                    const TextStyle(fontSize: 10, color: Colors.black),
                 columns: const [
                   DataColumn(label: Text('Date')),
                   DataColumn(label: Text('Name')),
@@ -256,43 +355,44 @@ class _ExpenseAppState extends State<ExpenseApp> {
                 ],
                 rows: snapshot.data!
                     .map((expense) => DataRow(
-                  onLongPress: () {
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Delete Expense'),
-                        content: const Text(
-                            'Are you sure you want to delete this expense?'),
-                        actions: [
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              TextButton(
-                                onPressed: () {
-                                  // Delete the expense from the database or other storage
-                                  DatabaseHelper.instance
-                                      .deleteExpense(expense.id!);
-                                  Navigator.pop(context);
-                                },
-                                child: const Text('YES'),
+                          onLongPress: () {
+                            showDialog(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Delete Expense'),
+                                content: const Text(
+                                    'Are you sure you want to delete this expense?'),
+                                actions: [
+                                  Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      TextButton(
+                                        onPressed: () {
+                                          // Delete the expense from the database or other storage
+                                          DatabaseHelper.instance
+                                              .deleteExpense(expense.id!);
+                                          Navigator.pop(context);
+                                        },
+                                        child: const Text('YES'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.pop(context),
+                                        child: const Text('NO'),
+                                      )
+                                    ],
+                                  ),
+                                ],
                               ),
-                              TextButton(
-                                onPressed: () => Navigator.pop(context),
-                                child: const Text('NO'),
-                              )
-                            ],
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  cells: [
-                    DataCell(Text(expense.expensedate)),
-                    DataCell(Text(expense.name.toUpperCase())),
-                    DataCell(Text(expense.category.toString())),
-                    DataCell(Text('${Utils.selectedCurrency} ${expense.amount.toString()}')),
-                  ],
-                ))
+                            );
+                          },
+                          cells: [
+                            DataCell(Text(expense.expensedate)),
+                            DataCell(Text(expense.name.toUpperCase())),
+                            DataCell(Text(expense.category.toString())),
+                            DataCell(Text(
+                                '${Utils.selectedCurrency} ${expense.amount.toString()}')),
+                          ],
+                        ))
                     .toList(),
               );
             } else if (snapshot.hasError) {
