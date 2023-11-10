@@ -20,7 +20,7 @@ void main() async {
   );
 
   Utils.prefs = await SharedPreferences.getInstance();
-  String? loggedInUser = Utils.prefs.getString('loggedInUser');
+  String loggedInUser = Utils.prefs.getString('loggedInUser') ?? "";
 
   runApp(MyApp(loggedInUser: loggedInUser));
 }
@@ -28,21 +28,22 @@ void main() async {
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key, required this.loggedInUser});
-  final String? loggedInUser;
+  final String loggedInUser;
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
 
-    final loggedInUserDecode = jsonDecode(loggedInUser!);
-
-    Utils.accountEmail = loggedInUserDecode['email'];
+    if(loggedInUser.isNotEmpty){
+      final loggedInUserDecode = jsonDecode(loggedInUser);
+      Utils.accountEmail = loggedInUserDecode['email'];
+    }
 
     return MaterialApp(
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.black),
         useMaterial3: true,
       ),
-      home: loggedInUser == null || loggedInUser!.isEmpty
+      home: loggedInUser.isEmpty
           ? const MyHomePage(title: 'Flutter Demo Home Page')
           : const ExpenseApp(),
     );

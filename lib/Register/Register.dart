@@ -55,6 +55,8 @@ class _RegisterState extends State<Register> {
                         .createUserWithEmailAndPassword(
                             email: email, password: password)
                         .then((newUser_) {
+
+                      Utils.accountEmail = email;
                       String loggedInUser =
                           Utils.userCredentialToJson(newUser_);
                       Utils.prefs

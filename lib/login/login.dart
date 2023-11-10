@@ -50,6 +50,7 @@ class _LoginState extends State<Login> {
                         .signInWithEmailAndPassword(
                             email: email, password: password)
                         .then((newUser) {
+                      Utils.accountEmail = email;
                       String loggedInUser = Utils.userCredentialToJson(newUser);
 
                       SharedPreferences.getInstance().then((prefs) {
@@ -60,7 +61,6 @@ class _LoginState extends State<Login> {
                       showDialog(
                         context: context,
                         builder: (context) {
-
                           return AlertDialog(
                             title: const Text('Error'),
                             content: Text(onError.toString()),

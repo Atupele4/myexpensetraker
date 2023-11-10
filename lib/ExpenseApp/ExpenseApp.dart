@@ -344,56 +344,63 @@ class _ExpenseAppState extends State<ExpenseApp> {
               for (final expense in snapshot.data!) {
                 expenseTotal += expense.amount;
               }
-              return DataTable(
-                dataTextStyle:
-                    const TextStyle(fontSize: 10, color: Colors.black),
-                columns: const [
-                  DataColumn(label: Text('Date')),
-                  DataColumn(label: Text('Name')),
-                  DataColumn(label: Text('Category')),
-                  DataColumn(label: Text('Amount')),
-                ],
-                rows: snapshot.data!
-                    .map((expense) => DataRow(
-                          onLongPress: () {
-                            showDialog(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Delete Expense'),
-                                content: const Text(
-                                    'Are you sure you want to delete this expense?'),
-                                actions: [
-                                  Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      TextButton(
-                                        onPressed: () {
-                                          // Delete the expense from the database or other storage
-                                          DatabaseHelper.instance
-                                              .deleteExpense(expense.id!);
-                                          Navigator.pop(context);
-                                        },
-                                        child: const Text('YES'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () => Navigator.pop(context),
-                                        child: const Text('NO'),
-                                      )
-                                    ],
-                                  ),
+              return Column(
+                children: [
+                  Center(
+                    child: DataTable(
+                      columnSpacing: 40,
+                      dataTextStyle:
+                          const TextStyle(fontSize: 10, color: Colors.black),
+                      columns: const [
+                        DataColumn(label: Text('Date')),
+                        DataColumn(label: Text('Name')),
+                        DataColumn(label: Text('Category')),
+                        DataColumn(label: Text('Amount')),
+                      ],
+                      rows: snapshot.data!
+                          .map((expense) => DataRow(
+                                onLongPress: () {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) => AlertDialog(
+                                      title: const Text('Delete Expense'),
+                                      content: const Text(
+                                          'Are you sure you want to delete this expense?'),
+                                      actions: [
+                                        Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          children: [
+                                            TextButton(
+                                              onPressed: () {
+                                                // Delete the expense from the database or other storage
+                                                DatabaseHelper.instance
+                                                    .deleteExpense(expense.id!);
+                                                Navigator.pop(context);
+                                              },
+                                              child: const Text('YES'),
+                                            ),
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context),
+                                              child: const Text('NO'),
+                                            )
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                                cells: [
+                                  DataCell(Text(expense.expensedate)),
+                                  DataCell(Text(expense.name.toUpperCase())),
+                                  DataCell(Text(expense.category.toString())),
+                                  DataCell(Text(
+                                      '${Utils.selectedCurrency} ${expense.amount.toString()}')),
                                 ],
-                              ),
-                            );
-                          },
-                          cells: [
-                            DataCell(Text(expense.expensedate)),
-                            DataCell(Text(expense.name.toUpperCase())),
-                            DataCell(Text(expense.category.toString())),
-                            DataCell(Text(
-                                '${Utils.selectedCurrency} ${expense.amount.toString()}')),
-                          ],
-                        ))
-                    .toList(),
+                              ))
+                          .toList(),
+                    ),
+                  ),
+                ],
               );
             } else if (snapshot.hasError) {
               return Text('Error: ${snapshot.error}');
